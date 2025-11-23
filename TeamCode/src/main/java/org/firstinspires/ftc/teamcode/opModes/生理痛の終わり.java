@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opModes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import org.firstinspires.ftc.teamcode.subsystems.shooter;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -8,10 +9,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystems.drivetrain;
-@TeleOp(name = "endperiodcramps")
+@TeleOp(name = "生理痛の終わり")
 
 
-public class endperiodcramps extends LinearOpMode {
+public class 生理痛の終わり extends LinearOpMode {
     public enum RobotState {
         GOONING,
         MOGGING,
@@ -28,17 +29,18 @@ public class endperiodcramps extends LinearOpMode {
     public ElapsedTime runTime = new ElapsedTime();
 
     drivetrain drive = new drivetrain();
+    shooter shooter = new shooter();
+
     @Override
     public void runOpMode() throws InterruptedException {
         drive.init(hardwareMap);
+        shooter.init(hardwareMap,telemetry);
         int nessID = hardwareMap.appContext.getResources().getIdentifier("ness", "raw", hardwareMap.appContext.getPackageName());
 
-        shooter1 = hardwareMap.dcMotor.get("shooter1");
-        shooter2 = hardwareMap.dcMotor.get("shooter2");
         intake = hardwareMap.dcMotor.get("intake");
 
-        turretServo = hardwareMap.servo.get("turretServo");
         latchServo = hardwareMap.servo.get("latchServo");
+
 
 //        rightFront.setDirection(DcMotor.Direction.REVERSE);
 
