@@ -1,46 +1,87 @@
 package org.firstinspires.ftc.teamcode.subsystems;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @Config
 public class shooter {
     private PIDController controller;
-    public static double p,i,d,target = 0;
+    private Servo latchServo;
+    private AnalogInput turretEncoder;
+    public IMU imu;
+    public double previousAngle, currentAngle = 180;
+    public int offset = 0;
+    public static double p,i,d = 0;
     private DcMotor shooter1,shooter2;
     private CRServo turretServo;
     public void init(HardwareMap hwm, Telemetry telemetry){
         controller = new PIDController(p,i,d);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
+        turretEncoder = hwm.analogInput.get("turretEncoder");
         shooter1 = hwm.dcMotor.get("shooter1");
         shooter2 = hwm.dcMotor.get("shooter2");
         turretServo = hwm.crservo.get("turretServo");
+        latchServo = hwm.servo.get("latchServo");
+        imu = hwm.get(IMU.class, "imu");
 
+        RevHubOrientationOnRobot orientation = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP
+        );
+
+        imu.initialize(new IMU.Parameters(orientation));
+        shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
     }
 
-    public void align(int offset){
+    public void align(double offset){
         controller.setPID(p,i,d);
-        //might need to fix / reevalute this since we only have offset
-        double pid = controller.calculate(offset,0);
-        turretServo.setPower(pid);
+        turretServo.setPower((Double.isNaN(offset) ? controller.calculate(currentAngle, imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES)) : controller.calculate(offset,0)));
     }
 
     public void fire(double power){
-        shooter1.setPower(power);
-        shooter2.setPower(power);
+        ElapsedTime timer = new ElapsedTime();
+        timer.reset();
+        while(timer.seconds() < 1.5) {
+            latchServo.setPosition(0.25);
+            shooter1.setPower(power);
+            shooter2.setPower(power);
+        }
+            shooter1.setPower(0);
+            shooter2.setPower(0);
+            latchServo.setPosition(.35);
+        }
 
-    }
+        public void rotate(){
+            turretServo.setPower(controller.calculate(currentAngle, 360));
+        }
+
+        public void loop(){
+            previousAngle = currentAngle;
+            currentAngle = turretEncoder.getVoltage()/3.3 * 360 + offset;
+            if(currentAngle + 200 < previousAngle){
+                offset += 360;
+                currentAngle = turretEncoder.getVoltage()/3.3 * 360 + offset;
+            }
+            if(currentAngle - 200 > previousAngle){
+                offset -= 360;
+                currentAngle = turretEncoder.getVoltage()/3.3 * 360 + offset;
+            }
+        }
 }
+
