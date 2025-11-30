@@ -8,18 +8,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.subsystems.intake;
 import org.firstinspires.ftc.teamcode.subsystems.drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.vision;
-@TeleOp(name = "生理痛の終わり")
+@TeleOp(name = "Blue生理痛の終わり")
 
-public class 生理痛の終わり extends LinearOpMode {
-    public enum RobotState {
-        GOONING,
-        MOGGING,
-    };
-
-    RobotState robotState = RobotState.MOGGING;
+public class Blue生理痛の終わり extends LinearOpMode {
     public Gamepad currentGamepad1 = new Gamepad();
-    boolean ended = false;
     public Gamepad previousGamepad1 = new Gamepad();
+    boolean ended = false;
     public ElapsedTime runTime = new ElapsedTime();
 
     drivetrain drive = new drivetrain();
@@ -38,31 +32,26 @@ public class 生理痛の終わり extends LinearOpMode {
 
         waitForStart();
         runTime.reset();
-    
+
         while (opModeIsActive()) {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
-            shooter.align(vision.offset());
-            intake.setIntake(gamepad1.left_bumper ? 1 : .25);
-
+            shooter.align(vision.offset(telemetry,20),telemetry);
+            intake.setIntake(gamepad1.left_bumper ? 1 : gamepad1.square ? -1 : .25);
             if(!previousGamepad1.right_bumper && currentGamepad1.right_bumper){
                 shooter.fire(1);
             }
-            telem();
+            telemetry.addData("time",runTime.milliseconds()/1000);
             if (runTime.seconds() > 123 && !ended)
             {
                 ended = true;
                 SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, nessID);
             }
-
+            telemetry.update();
         }
     }
-    public void telem() {
 
-        telemetry.addData("current state", robotState);
-        telemetry.update();
-    }
 
 
 }

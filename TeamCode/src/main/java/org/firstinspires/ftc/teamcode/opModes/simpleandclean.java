@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.opModes;
 import androidx.annotation.NonNull;
 import org.firstinspires.ftc.teamcode.subsystems.intake;
 import org.firstinspires.ftc.teamcode.subsystems.shooter;
-import org.firstinspires.ftc.teamcode.subsystems.vision;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;

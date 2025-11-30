@@ -28,7 +28,6 @@ public class shooter {
     private CRServo turretServo;
     public void init(HardwareMap hwm, Telemetry telemetry){
         controller = new PIDController(p,i,d);
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         turretEncoder = hwm.analogInput.get("turretEncoder");
         shooter1 = hwm.dcMotor.get("shooter1");
@@ -43,15 +42,23 @@ public class shooter {
         );
 
         imu.initialize(new IMU.Parameters(orientation));
+
         shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
     }
 
-    public void align(double offset){
+    public void align(double offset,Telemetry telemetry){
+        //make separate pid values because u are sped
         controller.setPID(p,i,d);
         turretServo.setPower((Double.isNaN(offset) ? controller.calculate(currentAngle, imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES)) : controller.calculate(offset,0)));
+        telemetry.addData("Yaw", imu.getRobotYawPitchRollAngles().getYaw());
+        telemetry.addData("Pitch", imu.getRobotYawPitchRollAngles().getPitch());
+        telemetry.addData("Roll", imu.getRobotYawPitchRollAngles().getRoll());
+
+        telemetry.update();
+
     }
 
     public void fire(double power){
@@ -61,6 +68,7 @@ public class shooter {
             latchServo.setPosition(0.25);
             shooter1.setPower(power);
             shooter2.setPower(power);
+
         }
             shooter1.setPower(0);
             shooter2.setPower(0);

@@ -16,4 +16,6 @@ public class intake {
     public void setIntake(double power){
         intake.setPower(power);
     }
+
 }
+
