@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
+import android.annotation.SuppressLint;
 import android.util.Size;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -13,6 +14,7 @@ public class vision  {
 
     private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
+    private double[] test = {1,2,3};
     private long lastTime = 0;
     private double fps = 0;
     public void init(HardwareMap hwm){
@@ -25,16 +27,16 @@ public class vision  {
         builder.setCameraResolution(new Size(640, 480));
         builder.addProcessor(aprilTag);
         builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
-        aprilTag.setDecimation(3.0);
         visionPortal = builder.build();
 
 
 
     }
 
-    public double offset(Telemetry telemetry, int id){
+    @SuppressLint("DefaultLocale")
+    public double[] offset(Telemetry telemetry, int id){
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-telemetry.addData("fps",visionPortal.getFps());
+            telemetry.addData("fps",visionPortal.getFps());
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata != null) {
                 telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
@@ -46,11 +48,11 @@ telemetry.addData("fps",visionPortal.getFps());
                 telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
             }
             if(detection.id == id) {
-                return detection.ftcPose.bearing;
+                return new double[] {detection.ftcPose.range,detection.ftcPose.bearing};
             }
         }
 
-        return Double.NaN;
+        return new double[] {Double.NaN,Double.NaN};
     }
 
 }

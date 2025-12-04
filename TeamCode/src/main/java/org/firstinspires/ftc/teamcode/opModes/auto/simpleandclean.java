@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opModes;
+package org.firstinspires.ftc.teamcode.opModes.auto;
 import androidx.annotation.NonNull;
 import org.firstinspires.ftc.teamcode.subsystems.intake;
 import org.firstinspires.ftc.teamcode.subsystems.shooter;
@@ -34,6 +34,7 @@ public class simpleandclean extends LinearOpMode {
                 return false;
             }
         }
+
         class intakeOff implements Action {
             ElapsedTime timer;
             @Override
@@ -47,12 +48,20 @@ public class simpleandclean extends LinearOpMode {
             ElapsedTime timer;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-              shooter.fire(1);
+              shooter.fire();
               sleep(1500);
               return false;
             }
         }
-
+        class start implements Action {
+            ElapsedTime timer;
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                shooter.start(1);
+                sleep(3000);
+                return false;
+            }
+        }
 
         while (!isStarted()) {
 
@@ -94,9 +103,11 @@ public class simpleandclean extends LinearOpMode {
             Action intakeOn = new intakeOn();
             Action intakeOff = new intakeOff();
             Action fire = new fire();
+            Action start = new start();
 
             Actions.runBlocking(
                     new SequentialAction(
+                            start,
                             fire,
                             intakeOn,
                             collectMiddle.build(),

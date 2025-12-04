@@ -7,6 +7,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -18,8 +19,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 @Config
 public class shooter {
     private PIDController controller;
-    private Servo latchServo;
-    private AnalogInput turretEncoder;
+    private Servo latchServo,rampServo;
+//    private AnalogInput turretEncoder;
     public IMU imu;
     public double previousAngle, currentAngle = 180;
     public int offset = 0;
@@ -29,11 +30,13 @@ public class shooter {
     public void init(HardwareMap hwm, Telemetry telemetry){
         controller = new PIDController(p,i,d);
 
-        turretEncoder = hwm.analogInput.get("turretEncoder");
+//        turretEncoder = hwm.analogInput.get("turretEncoder");
         shooter1 = hwm.dcMotor.get("shooter1");
         shooter2 = hwm.dcMotor.get("shooter2");
         turretServo = hwm.crservo.get("turretServo");
         latchServo = hwm.servo.get("latchServo");
+        rampServo = hwm.servo.get("rampServo");
+
         imu = hwm.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot orientation = new RevHubOrientationOnRobot(
@@ -45,51 +48,59 @@ public class shooter {
 
         shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+        latchServo.setPosition(.57);
 
     }
 
-    public void align(double offset,Telemetry telemetry){
+    public void align(double offset[],Telemetry telemetry){
         //make separate pid values because u are sped
         controller.setPID(p,i,d);
-        turretServo.setPower((Double.isNaN(offset) ? controller.calculate(currentAngle, imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES)) : controller.calculate(offset,0)));
-        telemetry.addData("Yaw", imu.getRobotYawPitchRollAngles().getYaw());
-        telemetry.addData("Pitch", imu.getRobotYawPitchRollAngles().getPitch());
-        telemetry.addData("Roll", imu.getRobotYawPitchRollAngles().getRoll());
+//        turretServo.setPower((Double.isNaN(offset[0]) ? controller.calculate(currentAngle, imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES)) : controller.calculate(offset,0)));
+        if(Double.isNaN(offset[0])){
+            turretServo.setPower(controller.calculate(offset[0],0));
+        }
+        else{
+//            turretServo.setPower(controller.calculate(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES),180));
+        turretServo.setPower(0);
+        }
+//
+        telemetry.addData("Yaw", imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
+        telemetry.addData("Pitch", imu.getRobotYawPitchRollAngles().getPitch(AngleUnit.DEGREES));
+        telemetry.addData("Roll", imu.getRobotYawPitchRollAngles().getRoll(AngleUnit.DEGREES));
 
         telemetry.update();
 
     }
 
-    public void fire(double power){
+    public void fire(){
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
         while(timer.seconds() < 1.5) {
-            latchServo.setPosition(0.25);
+            latchServo.setPosition(.57);
+        }
+            latchServo.setPosition(.5);
+        }
+
+        public void manual(Gamepad gamepad){
+            turretServo.setPower(gamepad.left_trigger + -gamepad.right_trigger);
+        }
+
+
+        public void start(double power){
             shooter1.setPower(power);
             shooter2.setPower(power);
+        }
+//        public void loop(){
+//            previousAngle = currentAngle;
+//            currentAngle = turretEncoder.getVoltage()/3.3 * 360 + offset;
+//            if(currentAngle + 200 < previousAngle){
+//                offset += 360;
+//                currentAngle = turretEncoder.getVoltage()/3.3 * 360 + offset;
+//            }
+//            if(currentAngle - 200 > previousAngle){
+//                offset -= 360;
+//                currentAngle = turretEncoder.getVoltage()/3.3 * 360 + offset;
+//            }
+        }
 
-        }
-            shooter1.setPower(0);
-            shooter2.setPower(0);
-            latchServo.setPosition(.35);
-        }
-
-        public void rotate(){
-            turretServo.setPower(controller.calculate(currentAngle, 360));
-        }
-
-        public void loop(){
-            previousAngle = currentAngle;
-            currentAngle = turretEncoder.getVoltage()/3.3 * 360 + offset;
-            if(currentAngle + 200 < previousAngle){
-                offset += 360;
-                currentAngle = turretEncoder.getVoltage()/3.3 * 360 + offset;
-            }
-            if(currentAngle - 200 > previousAngle){
-                offset -= 360;
-                currentAngle = turretEncoder.getVoltage()/3.3 * 360 + offset;
-            }
-        }
-}
 

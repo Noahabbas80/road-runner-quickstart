@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opModes;
+package org.firstinspires.ftc.teamcode.opModes.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.subsystems.shooter;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -32,15 +32,17 @@ public class Blue生理痛の終わり extends LinearOpMode {
 
         waitForStart();
         runTime.reset();
-
+        shooter.start(1);
         while (opModeIsActive()) {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
-            shooter.align(vision.offset(telemetry,20),telemetry);
-            intake.setIntake(gamepad1.left_bumper ? 1 : gamepad1.square ? -1 : .25);
+//            shooter.align(vision.offset(telemetry,20),telemetry);
+            drive.move(gamepad1);
+            shooter.manual(gamepad1);
+            intake.setIntake(gamepad1.left_bumper ? 1 : gamepad1.square ? -1 : .22);
             if(!previousGamepad1.right_bumper && currentGamepad1.right_bumper){
-                shooter.fire(1);
+                shooter.fire();
             }
             telemetry.addData("time",runTime.milliseconds()/1000);
             if (runTime.seconds() > 123 && !ended)
