@@ -17,7 +17,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class justshoot extends LinearOpMode {
     DcMotor shooter1, shooter2, intake;
     CRServo turretServo;
-    Servo latchServo;
+    Servo latchServo,rampServo;
 
     public boolean okey = false;
     boolean ended = false;
@@ -34,7 +34,7 @@ public class justshoot extends LinearOpMode {
         intake = hardwareMap.dcMotor.get("intake");
         turretServo = hardwareMap.crservo.get("turretServo");
         latchServo = hardwareMap.servo.get("latchServo");
-
+        rampServo = hardwareMap.servo.get("rampServo");
         shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -47,6 +47,8 @@ public class justshoot extends LinearOpMode {
 
         runtime.reset();
         while (opModeIsActive()) {
+
+            rampServo.setPosition(.2 + gamepad1.right_trigger);
             turretServo.setPower(gamepad1.left_stick_x);
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
@@ -69,6 +71,7 @@ public class justshoot extends LinearOpMode {
             telemetry.addData("turret pos", turretServo.getPower());
 telemetry.addData("e",gamepad1.left_trigger);
 telemetry.addData("e",gamepad1.right_stick_y);
+telemetry.addData("ramp servo pos",rampServo.getPosition());
             telemetry.update();
             }
 

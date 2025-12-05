@@ -11,13 +11,15 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
+
 @Config
 @TeleOp(name = "turretTest")
 
 public class turretTest extends LinearOpMode {
     shooter shooter = new shooter();
     double previousAngle = -400;
-
+private Servo rampServo;
     private CRServo turretServo;
     double currentAngle = 0;
     double offset = 0;
@@ -33,6 +35,7 @@ public class turretTest extends LinearOpMode {
     public int flywheelSpeed = 0;
     @Override
     public void runOpMode() throws InterruptedException {
+
         controller = new PIDController(p,i,d);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -40,6 +43,8 @@ public class turretTest extends LinearOpMode {
 
         shooter1 = (DcMotorEx) hardwareMap.dcMotor.get("shooter1");
         turretServo = hardwareMap.crservo.get("turretServo");
+
+        rampServo = hardwareMap.servo.get("rampServo");
         shooter2 = (DcMotorEx) hardwareMap.dcMotor.get("shooter2");
 
         intake = (DcMotorEx) hardwareMap.dcMotor.get("intake");
@@ -50,6 +55,7 @@ public class turretTest extends LinearOpMode {
 previousAngle = turretEncoder.getVoltage() / 3.3 * 360;
 currentAngle = turretEncoder.getVoltage() / 3.3 * 360;
         while (opModeIsActive()) {
+            rampServo.setPosition(.2 + gamepad1.right_trigger);
             flywheelSpeed = shooter1.getCurrentPosition();
             intake.setPower(1);
             controller.setPID(p,i,d);
