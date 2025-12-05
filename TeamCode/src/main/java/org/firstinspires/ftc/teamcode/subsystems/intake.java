@@ -13,6 +13,7 @@ public class intake {
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
+// this is the saddest thing ive ever made in my life.
     public void setIntake(double power){
         intake.setPower(power);
     }
