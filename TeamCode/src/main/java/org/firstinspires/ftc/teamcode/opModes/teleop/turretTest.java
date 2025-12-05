@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
@@ -19,7 +20,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class turretTest extends LinearOpMode {
     shooter shooter = new shooter();
     double previousAngle = -400;
-private Servo rampServo;
+private Servo rampServo,latchServo;
     private CRServo turretServo;
     double currentAngle = 0;
     double offset = 0;
@@ -32,6 +33,7 @@ private Servo rampServo;
     public static double i=0.09;
     public static double d=0.00016;
     public static double speed = 0;
+    public static double rampPos = 0;
     public int flywheelSpeed = 0;
     @Override
     public void runOpMode() throws InterruptedException {
@@ -42,7 +44,9 @@ private Servo rampServo;
         turretEncoder = hardwareMap.analogInput.get("turretEncoder");
 
         shooter1 = (DcMotorEx) hardwareMap.dcMotor.get("shooter1");
+        shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
         turretServo = hardwareMap.crservo.get("turretServo");
+        latchServo = hardwareMap.servo.get("latchServo");
 
         rampServo = hardwareMap.servo.get("rampServo");
         shooter2 = (DcMotorEx) hardwareMap.dcMotor.get("shooter2");
@@ -55,10 +59,12 @@ private Servo rampServo;
 previousAngle = turretEncoder.getVoltage() / 3.3 * 360;
 currentAngle = turretEncoder.getVoltage() / 3.3 * 360;
         while (opModeIsActive()) {
-            rampServo.setPosition(.2 + gamepad1.right_trigger);
+            rampServo.setPosition(rampPos);
+
             flywheelSpeed = shooter1.getCurrentPosition();
             intake.setPower(1);
             controller.setPID(p,i,d);
+
             previousAngle = currentAngle;
             currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
             if (currentAngle + 200 < previousAngle) {
@@ -70,17 +76,19 @@ currentAngle = turretEncoder.getVoltage() / 3.3 * 360;
                 currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
             }
 
+            turretServo.setPower(controller.calculate(Math.round(currentAngle),target));
+
+
+
             shooter1.setVelocity(speed);
             shooter2.setVelocity(speed);
-
-            turretServo.setPower(gamepad1.x ? 1 : controller.calculate(Math.round(currentAngle),target));
-
+            latchServo.setPosition(gamepad1.left_bumper?.49:.26);
             telemetry.addData("direct read",turretEncoder.getVoltage() / 3.3 * 360);
-//            telemetry.addData("previous angle", previousAngle);
             telemetry.addData("current angle", currentAngle);
             telemetry.addData("speed", flywheelSpeed);
             telemetry.addData("offset",offset);
             telemetry.addData("target",target);
+            telemetry.addData("latch",latchServo.getPosition());
             telemetry.update();
             }
 

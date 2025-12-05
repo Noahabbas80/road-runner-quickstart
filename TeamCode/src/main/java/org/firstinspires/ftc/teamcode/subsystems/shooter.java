@@ -57,7 +57,7 @@ public class shooter {
     public void fire(){
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
-        while(timer.seconds() < 1.5) {
+        while(timer.seconds() < 1) {
             latchServo.setPosition(.57);
         }
             latchServo.setPosition(.05);
@@ -88,24 +88,21 @@ public class shooter {
 
 
 
-    public void align(double offset[],Telemetry telemetry){
-        //make separate pid values because u are sped
+
+
+    public void alignAuto(){
         controller.setPID(p,i,d);
-//        turretServo.setPower((Double.isNaN(offset[0]) ? controller.calculate(currentAngle, imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES)) : controller.calculate(offset,0)));
-        if(Double.isNaN(offset[0])){
-            turretServo.setPower(controller.calculate(offset[0],0));
+        previousAngle = currentAngle;
+        currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
+        if (currentAngle + 200 < previousAngle) {
+            offset += (360);
+            currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
         }
-        else{
-//            turretServo.setPower(controller.calculate(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES),180));
-            turretServo.setPower(0);
+        if (currentAngle - 200 > previousAngle) {
+            offset -= (360);
+            currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
         }
-//
-        telemetry.addData("Yaw", imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
-        telemetry.addData("Pitch", imu.getRobotYawPitchRollAngles().getPitch(AngleUnit.DEGREES));
-        telemetry.addData("Roll", imu.getRobotYawPitchRollAngles().getRoll(AngleUnit.DEGREES));
-
-        telemetry.update();
-
+       return controller.calculate(Math.round(currentAngle),140
     }
 }
 
