@@ -10,41 +10,64 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.subsystems.intake;
-import org.firstinspires.ftc.teamcode.subsystems.shooter;
 
-@Autonomous(name="simpleandclean_anextenstionofthecolangelofiles")
+@Autonomous(name="RDAMVMOdOZG_tLVoc")
 public class RDAMVMOdOZG_tLVoc extends LinearOpMode {
-    @Override
+    private PIDController controller;
+    private DcMotorEx shooter1,shooter2,intake;
+    double offset = 0;
+    public static double target = 100;
+    public double previousAngle, currentAngle = 180;
+    private AnalogInput turretEncoder;
+    private CRServo turretServo;
+    private Servo latchServo,rampServo;
+    public static double p=0.006;
+    public static double i=0.09;
+    public static double d=0.00016;
+
+
 
     public void runOpMode() throws InterruptedException {
+        controller = new PIDController(p,i,d);
         Vector2d botOffset = new Vector2d(16.7717/2,15.3543/2);
-        Pose2d startPos = new Pose2d(-24-botOffset.x,-24-botOffset.y,Math.toRadians(270));
-        Vector2d firePos = new Vector2d(-24-botOffset.x,-24-botOffset.y);
+        Pose2d startPos = new Pose2d(-24-botOffset.x,-24+botOffset.y,Math.toRadians(270));
+        Vector2d firePos = new Vector2d(-24-botOffset.x,-24+botOffset.y);
 
-        intake intake = new intake();
-        shooter shooter = new shooter();
+        turretEncoder = hardwareMap.analogInput.get("turretEncoder");
+
+        rampServo = hardwareMap.servo.get("rampServo");
+        latchServo = hardwareMap.servo.get("latchServo");
+        turretServo = hardwareMap.crservo.get("turretServo");
+        latchServo = hardwareMap.servo.get("latchServo");
+        shooter1 = (DcMotorEx) hardwareMap.dcMotor.get("shooter1");
+        shooter2 = (DcMotorEx) hardwareMap.dcMotor.get("shooter2");
+        intake = (DcMotorEx) hardwareMap.dcMotor.get("intake");
+
+        shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
+        rampServo.setPosition(0);
+
+        shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPos);
 
         class intakeOn implements Action {
             ElapsedTime timer;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                intake.setIntake(1);
-                return false;
-            }
-        }
-
-        class intakeOff implements Action {
-            ElapsedTime timer;
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                intake.setIntake(.25);
+                intake.setPower(1);
                 return false;
             }
         }
@@ -53,16 +76,42 @@ public class RDAMVMOdOZG_tLVoc extends LinearOpMode {
             ElapsedTime timer;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-              shooter.fire();
-              sleep(1500);
+                ElapsedTime timer = new ElapsedTime();
+                timer.reset();
+                while(timer.seconds() < 1) {
+                    latchServo.setPosition(.26);
+                }
+                latchServo.setPosition(.49);
               return false;
+            }
+        }
+
+        class alignA implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                previousAngle = currentAngle;
+                currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
+                if (currentAngle + 200 < previousAngle) {
+                    offset += (360);
+                    currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
+                }
+                if (currentAngle - 200 > previousAngle) {
+                    offset -= (360);
+                    currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
+                }
+
+                turretServo.setPower(controller.calculate(Math.round(currentAngle),65));
+                return true;
             }
         }
         class start implements Action {
             ElapsedTime timer;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                shooter.start(696969690);
+                shooter1.setVelocity(1350);
+                shooter2.setVelocity(1350);
+
+                intake.setPower(1);
                 sleep(3000);
                 return false;
             }
@@ -74,7 +123,7 @@ public class RDAMVMOdOZG_tLVoc extends LinearOpMode {
             waitForStart();
 
             TrajectoryActionBuilder collectFront = drive.actionBuilder(startPos)
-                    .strafeTo(new Vector2d(-12,-24-botOffset.y))
+                    .strafeTo(new Vector2d(-12,-24+botOffset.y))
                     .strafeTo(new Vector2d(-12,-65+botOffset.y))
                     .setTangent(45)
                     .splineToConstantHeading(new Vector2d(-2,-55), Math.toRadians(270))
@@ -82,18 +131,16 @@ public class RDAMVMOdOZG_tLVoc extends LinearOpMode {
                     .splineToConstantHeading(firePos, Math.toRadians(135));
 
 
-            Action intakeOn = new intakeOn();
-            Action intakeOff = new intakeOff();
+            Action alignA = new alignA();
             Action fire = new fire();
             Action start = new start();
 
             Actions.runBlocking(
                     new ParallelAction(
-
+                            alignA,
                     new SequentialAction(
                             start,
                             fire,
-                            intakeOn,
                             collectFront.build(),
                             fire
                     ))

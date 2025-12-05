@@ -23,15 +23,17 @@ public class turretTest extends LinearOpMode {
 private Servo rampServo,latchServo;
     private CRServo turretServo;
     double currentAngle = 0;
-    double offset = 0;
-    private AnalogInput turretEncoder;
-    private DcMotorEx shooter1,shooter2,intake;
     private PIDController controller;
-
+    double offset = 0;
     public static double target = 150;
     public static double p=0.006;
     public static double i=0.09;
     public static double d=0.00016;
+    private AnalogInput turretEncoder;
+    private DcMotorEx shooter1,shooter2,intake;
+
+
+
     public static double speed = 0;
     public static double rampPos = 0;
     public int flywheelSpeed = 0;
@@ -42,19 +44,21 @@ private Servo rampServo,latchServo;
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         turretEncoder = hardwareMap.analogInput.get("turretEncoder");
+        turretServo = hardwareMap.crservo.get("turretServo");
 
         shooter1 = (DcMotorEx) hardwareMap.dcMotor.get("shooter1");
         shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
-        turretServo = hardwareMap.crservo.get("turretServo");
+        shooter2 = (DcMotorEx) hardwareMap.dcMotor.get("shooter2");
+        intake = (DcMotorEx) hardwareMap.dcMotor.get("intake");
+
+        shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         latchServo = hardwareMap.servo.get("latchServo");
 
         rampServo = hardwareMap.servo.get("rampServo");
-        shooter2 = (DcMotorEx) hardwareMap.dcMotor.get("shooter2");
 
-        intake = (DcMotorEx) hardwareMap.dcMotor.get("intake");
 
-        shooter1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooter2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
 previousAngle = turretEncoder.getVoltage() / 3.3 * 360;
 currentAngle = turretEncoder.getVoltage() / 3.3 * 360;
@@ -85,10 +89,20 @@ currentAngle = turretEncoder.getVoltage() / 3.3 * 360;
             latchServo.setPosition(gamepad1.left_bumper?.49:.26);
             telemetry.addData("direct read",turretEncoder.getVoltage() / 3.3 * 360);
             telemetry.addData("current angle", currentAngle);
+
             telemetry.addData("speed", flywheelSpeed);
             telemetry.addData("offset",offset);
             telemetry.addData("target",target);
             telemetry.addData("latch",latchServo.getPosition());
+
+            telemetry.addData("ramp",rampServo.getPosition());
+
+            telemetry.addData("Shooter1 TPS", shooter1.getVelocity());
+            telemetry.addData("Shooter2 TPS", shooter2.getVelocity());
+
+
+            telemetry.addData("Shooter1 pos", shooter1.getCurrentPosition());
+            telemetry.addData("Shooter2 pos", shooter2.getCurrentPosition());
             telemetry.update();
             }
 

@@ -25,7 +25,9 @@ public class shooter {
     public IMU imu;
     public double previousAngle, currentAngle = 180;
     public int offset = 0;
-    public static double p,i,d = 0;
+    public static double p=0.006;
+    public static double i=0.09;
+    public static double d=0.00016;
     private DcMotorEx shooter1,shooter2;
     public static double speed = 0;
     private CRServo turretServo;
@@ -58,9 +60,9 @@ public class shooter {
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
         while(timer.seconds() < 1) {
-            latchServo.setPosition(.57);
+            latchServo.setPosition(.26);
         }
-            latchServo.setPosition(.05);
+            latchServo.setPosition(.49);
         }
 
         public void manual(Gamepad gamepad){
@@ -90,7 +92,7 @@ public class shooter {
 
 
 
-    public void alignAuto(){
+    public double alignAuto(int angle){
         controller.setPID(p,i,d);
         previousAngle = currentAngle;
         currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
@@ -102,7 +104,7 @@ public class shooter {
             offset -= (360);
             currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
         }
-       return controller.calculate(Math.round(currentAngle),140
+       return controller.calculate(Math.round(currentAngle),angle);
     }
 }
 

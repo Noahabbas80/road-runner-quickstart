@@ -17,21 +17,21 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15.3543)
                 .build();
         Vector2d botOffset = new Vector2d(16.7717/2,15.3543/2);
-        Pose2d startPos = new Pose2d(-24-botOffset.x,-24-botOffset.y,Math.toRadians(270));
-        Vector2d firePos = new Vector2d(-24-botOffset.x,-24-botOffset.y);
+        Pose2d startPos = new Pose2d(-24-botOffset.x,-24+botOffset.y,Math.toRadians(270));
+        Vector2d firePos = new Vector2d(-24-botOffset.x,-24+botOffset.y);
 
         myBot.runAction(myBot.getDrive().actionBuilder(startPos)
-                .strafeTo(new Vector2d(-12,-24-botOffset.y))
+                .strafeTo(new Vector2d(-12,-24+botOffset.y))
                 .strafeTo(new Vector2d(-12,-65+botOffset.y))
                 .setTangent(45)
                 .splineToConstantHeading(new Vector2d(-2,-55), Math.toRadians(270))
                 .setTangent(90)
                 .splineToConstantHeading(firePos, Math.toRadians(135))
-                .strafeTo(new Vector2d(12,-24-botOffset.y))
+                .strafeTo(new Vector2d(12,-24+botOffset.y))
                 .strafeTo(new Vector2d(12,-65+botOffset.y))
                 .setTangent(90)
                 .splineToConstantHeading(firePos, Math.toRadians(135))
-                .strafeTo(new Vector2d(36,-24-botOffset.y))
+                .strafeTo(new Vector2d(36,-24+botOffset.y))
                 .strafeTo(new Vector2d(36,-65+botOffset.y))
                 .setTangent(90)
                 .splineToConstantHeading(firePos, Math.toRadians(135))
