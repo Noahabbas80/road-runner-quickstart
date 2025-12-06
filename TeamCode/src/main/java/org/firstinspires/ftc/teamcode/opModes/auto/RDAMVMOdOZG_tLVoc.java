@@ -30,8 +30,7 @@ public class RDAMVMOdOZG_tLVoc extends LinearOpMode {
     double offset = 0;
     public static double target = 100;
     public double previousAngle, currentAngle = 180;
-    private AnalogInput turretEncoder;
-    private CRServo turretServo;
+    private Servo turretServo;
     private Servo latchServo,rampServo;
     public static double p=0.006;
     public static double i=0.09;
@@ -42,22 +41,20 @@ public class RDAMVMOdOZG_tLVoc extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         controller = new PIDController(p,i,d);
         Vector2d botOffset = new Vector2d(16.7717/2,15.3543/2);
-        Pose2d startPos = new Pose2d(-24-botOffset.x,-24+botOffset.y,Math.toRadians(270));
+        Pose2d startPos = new Pose2d(-24-botOffset.x,-24+botOffset.y,Math.toRadians(90));
         Vector2d firePos = new Vector2d(-24-botOffset.x,-24+botOffset.y);
 
-        turretEncoder = hardwareMap.analogInput.get("turretEncoder");
 
         rampServo = hardwareMap.servo.get("rampServo");
         latchServo = hardwareMap.servo.get("latchServo");
-        turretServo = hardwareMap.crservo.get("turretServo");
-        latchServo = hardwareMap.servo.get("latchServo");
+        turretServo = hardwareMap.servo.get("turretServo");
         shooter1 = (DcMotorEx) hardwareMap.dcMotor.get("shooter1");
         shooter2 = (DcMotorEx) hardwareMap.dcMotor.get("shooter2");
         intake = (DcMotorEx) hardwareMap.dcMotor.get("intake");
 
         shooter1.setDirection(DcMotorSimple.Direction.REVERSE);
-        rampServo.setPosition(0);
-
+        rampServo.setPosition(.01);
+        latchServo.setPosition(.26);
         shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -78,73 +75,53 @@ public class RDAMVMOdOZG_tLVoc extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket packet) {
                 ElapsedTime timer = new ElapsedTime();
                 timer.reset();
-                while(timer.seconds() < 1) {
-                    latchServo.setPosition(.26);
-                }
-                latchServo.setPosition(.49);
+
+                    latchServo.setPosition(.49);
+                    sleep(1750);
+                latchServo.setPosition(.26);
               return false;
             }
         }
 
-        class alignA implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                previousAngle = currentAngle;
-                currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
-                if (currentAngle + 200 < previousAngle) {
-                    offset += (360);
-                    currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
-                }
-                if (currentAngle - 200 > previousAngle) {
-                    offset -= (360);
-                    currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
-                }
 
-                turretServo.setPower(controller.calculate(Math.round(currentAngle),65));
-                return true;
-            }
-        }
         class start implements Action {
             ElapsedTime timer;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                shooter1.setVelocity(1350);
-                shooter2.setVelocity(1350);
+                turretServo.setPosition(1);
+                shooter1.setVelocity(1325);
+                shooter2.setVelocity(1325);
 
                 intake.setPower(1);
-                sleep(3000);
-                return false;
+                return shooter2.getVelocity() < 1300;
             }
         }
-
-        while (!isStarted()) {
 
 
             waitForStart();
 
             TrajectoryActionBuilder collectFront = drive.actionBuilder(startPos)
-                    .strafeTo(new Vector2d(-12,-24+botOffset.y))
-                    .strafeTo(new Vector2d(-12,-65+botOffset.y))
-                    .setTangent(45)
-                    .splineToConstantHeading(new Vector2d(-2,-55), Math.toRadians(270))
-                    .setTangent(90)
-                    .splineToConstantHeading(firePos, Math.toRadians(135));
+                    .strafeTo(new Vector2d(36,-24+botOffset.y))
+             .strafeTo(firePos);
+//                    .strafeTo(new Vector2d(-12,-65+botOffset.y))
+//                    .setTangent(45)
+//                    .splineToConstantHeading(new Vector2d(-2,-55), Math.toRadians(270))
+//                    .setTangent(90)
+//                    .splineToConstantHeading(firePos, Math.toRadians(135));
 
 
-            Action alignA = new alignA();
             Action fire = new fire();
             Action start = new start();
 
             Actions.runBlocking(
-                    new ParallelAction(
-                            alignA,
+
                     new SequentialAction(
                             start,
                             fire,
                             collectFront.build(),
                             fire
-                    ))
+                  )
                     );
-        }
+
     }
 }
