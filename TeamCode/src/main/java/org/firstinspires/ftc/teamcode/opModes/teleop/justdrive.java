@@ -50,10 +50,7 @@ public class justdrive extends LinearOpMode {
             leftBack.setPower((backLeftPower) * (gamepad1.x ? .5 : 0));
             rightFront.setPower((frontRightPower) * (gamepad1.x ? .5 : 0));
             rightBack.setPower((backRightPower) * (gamepad1.x ? .5 : 0));
-//
-//            intake.setPower(1);
-//            shooter1.setPower(1);
-//            shooter2.setPower(1);
+
             telemetry.addData("y",y);
             telemetry.addData("x",x);
             telemetry.addData("rx",rx);
