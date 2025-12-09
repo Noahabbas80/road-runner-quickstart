@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opModes.teleop;
+package org.firstinspires.ftc.teamcode.trash;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.ftccommon.SoundPlayer;

@@ -49,7 +49,7 @@ public class blueAuto extends LinearOpMode {
 
         rampServo.setPosition(.01);
         latchServo.setPosition(.26);
-        turretServo.setPosition(1);
+        turretServo.setPosition(.3);
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPos);
 
         class fire implements Action {
@@ -71,8 +71,8 @@ public class blueAuto extends LinearOpMode {
             ElapsedTime timer;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                shooter1.setVelocity(1325);
-                shooter2.setVelocity(1325);
+                shooter1.setVelocity(800);
+                shooter2.setVelocity(800);
                 intake.setPower(1);
                 return (shooter1.getVelocity() < 1325 && shooter2.getVelocity() <1325);
             }

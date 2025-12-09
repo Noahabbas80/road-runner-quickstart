@@ -19,93 +19,52 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @Config
 public class shooter {
-    private PIDController controller;
-    private Servo latchServo,rampServo;
-    private AnalogInput turretEncoder;
-    public IMU imu;
-    public double previousAngle, currentAngle = 180;
-    public int offset = 0;
-    public static double p=0.006;
-    public static double i=0.09;
-    public static double d=0.00016;
+    private Servo latchServo,rampServo,turretServo;
     private DcMotorEx shooter1,shooter2;
-    public static double speed = 0;
-    private CRServo turretServo;
-    public void init(HardwareMap hwm, Telemetry telemetry){
-        controller = new PIDController(p,i,d);
-
-        turretEncoder = hwm.analogInput.get("turretEncoder");
+    public static double speed = 1400;
+    public void init(HardwareMap hwm, boolean isBlue){
         shooter1 = (DcMotorEx) hwm.dcMotor.get("shooter1");
         shooter2 = (DcMotorEx) hwm.dcMotor.get("shooter2");
-        turretServo = hwm.crservo.get("turretServo");
+
+        turretServo = hwm.servo.get("turretServo");
         latchServo = hwm.servo.get("latchServo");
         rampServo = hwm.servo.get("rampServo");
 
-        imu = hwm.get(IMU.class, "imu");
+        shooter1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        RevHubOrientationOnRobot orientation = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP
-        );
+        latchServo.setPosition(.26);
+        rampServo.setPosition(.01);
+        shooter1.setDirection(DcMotor.Direction.REVERSE);
+        shooter1.setVelocity(1400);
+        shooter2.setVelocity(1400);
 
-        imu.initialize(new IMU.Parameters(orientation));
 
-        shooter1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooter2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        latchServo.setPosition(.57);
+
 
     }
 
     public void fire(){
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
-        while(timer.seconds() < 1) {
-            latchServo.setPosition(.26);
-        }
+        while(timer.seconds() < 1.25) {
             latchServo.setPosition(.49);
         }
-
-        public void manual(Gamepad gamepad){
-            turretServo.setPower(gamepad.left_trigger + -gamepad.right_trigger);
+            latchServo.setPosition(.26);
         }
 
-
-        public void start(double power){
+        public void setRPM(double power){
             shooter1.setVelocity(speed);
-            shooter1.setVelocity(speed);
+            shooter2.setVelocity(speed);
         }
-        public double getRelativeAngle() {
-            previousAngle = currentAngle;
-            currentAngle = turretEncoder.getVoltage() / 3.3 * 360 + offset;
-            if (currentAngle + 200 < previousAngle) {
-                offset += 360;
-                currentAngle = turretEncoder.getVoltage() / 3.3 * 360 + offset;
+
+
+        public void align(double tx){
+            if(tx > .5){
+                turretServo.setPosition(turretServo.getPosition() + tx * (140/64));
             }
-            if (currentAngle - 200 > previousAngle) {
-                offset -= 360;
-                currentAngle = turretEncoder.getVoltage() / 3.3 * 360 + offset;
-            }
-            return currentAngle;
+
         }
-
-
-
-
-
-    public double alignAuto(int angle){
-        controller.setPID(p,i,d);
-        previousAngle = currentAngle;
-        currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
-        if (currentAngle + 200 < previousAngle) {
-            offset += (360);
-            currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
-        }
-        if (currentAngle - 200 > previousAngle) {
-            offset -= (360);
-            currentAngle = ((turretEncoder.getVoltage() / 3.3) * 360) + offset;
-        }
-       return controller.calculate(Math.round(currentAngle),angle);
-    }
 }
 
 

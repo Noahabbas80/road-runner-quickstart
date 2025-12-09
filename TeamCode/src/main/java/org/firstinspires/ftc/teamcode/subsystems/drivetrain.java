@@ -11,17 +11,16 @@ public class drivetrain {
         rightFront = hwm.dcMotor.get("rightFront");
         leftBack = hwm.dcMotor.get("leftBack");
         rightBack = hwm.dcMotor.get("rightBack");
+//
+//        leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-
-//        leftFront.setDirection(DcMotor.Direction.REVERSE);
-//        rightBack.setDirection(DcMotor.Direction.REVERSE);
-        leftBack.setDirection(DcMotor.Direction.REVERSE);
-        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void move(Gamepad gamepad){
@@ -36,10 +35,16 @@ public class drivetrain {
         double frontRightPower = (y - x - rx) / denominator;
         double backRightPower = (y + x - rx) / denominator;
 
-        leftFront.setPower((frontLeftPower) * (gamepad.x ? .5 : 1));
-        leftBack.setPower((backLeftPower) * (gamepad.x ? .5 : 1));
-        rightFront.setPower((frontRightPower) * (gamepad.x ? .5 : 1));
-        rightBack.setPower((backRightPower) * (gamepad.x ? .5 : 1));
+        leftFront.setPower((frontLeftPower) * (gamepad.triangle ? .5 : 1));
+        leftBack.setPower((backLeftPower) * (gamepad.triangle ? .5 : 1));
+        rightFront.setPower((frontRightPower) * (gamepad.triangle ? .5 : 1));
+        rightBack.setPower((backRightPower) * (gamepad.triangle ? .5 : 1));
+
+
+//        leftFront.setPower(gamepad.dpad_up ? 1 : 0);
+//        leftBack.setPower((gamepad.dpad_down ? 1 : 0));
+//        rightFront.setPower((gamepad.dpad_right ? 1 : 0));
+//        rightBack.setPower((gamepad.dpad_left ? 1 : 0));
 
     }
 }
